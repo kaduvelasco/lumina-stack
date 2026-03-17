@@ -1,0 +1,19 @@
+# Logs e Temporários
+*.log
+.DS_Store
+Thumbs.db
+
+# Dependências
+node_modules/
+vendor/
+
+# IDEs
+.idea/
+.vscode/
+.vscodium/
+.zed/
+*.swp
+
+# Moodle específico
+/moodledata/
+/config.php

@@ -1,0 +1,24 @@
+# Bloqueio de arquivos sensíveis
+.env
+*.pem
+*.key
+config.php
+
+# Pastas de dados e dependências pesadas
+/moodledata/
+/vendor/
+/node_modules/
+
+# Bloqueio de arquivos binários e mídia (Economia de Tokens)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.mp3
+*.mp4
+*.webm
+*.pdf
+*.zip
+*.tar.gz
