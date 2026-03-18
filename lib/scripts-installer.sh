@@ -27,10 +27,7 @@ install_binary() {
         return 1
     fi
 
-    sudo cp "$SOURCE" "$TARGET"
-    sudo chmod +x "$TARGET"
-
-    if [ $? -eq 0 ]; then
+    if sudo cp "$SOURCE" "$TARGET" && sudo chmod +x "$TARGET"; then
         echo -e "${VERDE}✅ Comando '${AMARELO}$COMMAND_NAME${VERDE}' instalado em $TARGET${RESET}"
     else
         echo -e "${VERMELHO}❌ Falha ao instalar '$COMMAND_NAME'. Verifique as permissões de sudo.${RESET}"
