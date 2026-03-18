@@ -49,7 +49,8 @@ generate_secure_password() {
 generate_docker_stack() {
     local WORKSPACE="$HOME/workspace"
     local DOCKER_DIR="$WORKSPACE/docker"
-    local TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../templates" && pwd)"
+    local TEMPLATE_DIR
+    TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../templates" && pwd)"
 
     if [[ ! -d "$WORKSPACE" ]]; then
         echo -e "${VERMELHO}❌ Workspace não encontrado. Execute a ${AMARELO}opção 3${RESET}${VERMELHO} primeiro.${RESET}"

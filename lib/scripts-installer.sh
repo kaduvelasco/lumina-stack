@@ -14,7 +14,8 @@
 install_binary() {
     local SCRIPT_NAME="$1"
     local COMMAND_NAME="$2"
-    local PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    local PROJECT_ROOT
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     local SOURCE="$PROJECT_ROOT/scripts/$SCRIPT_NAME"
     local TARGET="/usr/local/bin/$COMMAND_NAME"
 

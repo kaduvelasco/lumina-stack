@@ -13,7 +13,8 @@
 
 create_workspace() {
     local WORKSPACE="$HOME/workspace"
-    local TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../templates" && pwd)"
+    local TEMPLATE_DIR
+    TEMPLATE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../templates" && pwd)"
 
     echo -e "\n${AZUL}📂 Criando estrutura de workspace em $WORKSPACE...${RESET}"
 
