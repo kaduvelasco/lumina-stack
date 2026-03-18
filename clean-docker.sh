@@ -47,26 +47,26 @@ echo -e "\n${AZUL}🧹 Iniciando limpeza do Docker...${RESET}\n"
 # ==============================================================================
 
 echo -e "${AMARELO}⏹️  Parando containers em execução...${RESET}"
-CONTAINERS=$(docker ps -aq)
-if [ -n "$CONTAINERS" ]; then
-    docker stop $CONTAINERS 2>/dev/null
+mapfile -t CONTAINERS < <(docker ps -aq)
+if [ ${#CONTAINERS[@]} -gt 0 ]; then
+    docker stop "${CONTAINERS[@]}" 2>/dev/null
     echo -e "${VERDE}✅ Containers parados.${RESET}"
 else
     echo -e "   Nenhum container em execução."
 fi
 
 echo -e "\n${AMARELO}🗑️  Removendo containers...${RESET}"
-if [ -n "$CONTAINERS" ]; then
-    docker rm $CONTAINERS 2>/dev/null
+if [ ${#CONTAINERS[@]} -gt 0 ]; then
+    docker rm "${CONTAINERS[@]}" 2>/dev/null
     echo -e "${VERDE}✅ Containers removidos.${RESET}"
 else
     echo -e "   Nenhum container para remover."
 fi
 
 echo -e "\n${AMARELO}🗑️  Removendo imagens...${RESET}"
-IMAGES=$(docker images -q)
-if [ -n "$IMAGES" ]; then
-    docker rmi $IMAGES -f 2>/dev/null
+mapfile -t IMAGES < <(docker images -q)
+if [ ${#IMAGES[@]} -gt 0 ]; then
+    docker rmi "${IMAGES[@]}" -f 2>/dev/null
     echo -e "${VERDE}✅ Imagens removidas.${RESET}"
 else
     echo -e "   Nenhuma imagem para remover."

@@ -6,6 +6,7 @@
 [![Shell](https://img.shields.io/badge/shell-bash-green)](https://www.gnu.org/software/bash/)
 [![Distros](https://img.shields.io/badge/distros-Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20Arch-orange)](#️-compatibilidade)
 [![GitHub](https://img.shields.io/badge/GitHub-kaduvelasco%2Flumina--stack-181717?logo=github)](https://github.com/kaduvelasco/lumina-stack)
+[![CI](https://img.shields.io/github/actions/workflow/status/kaduvelasco/lumina-stack/lint.yml?label=lint%20%26%20smoke%20test)](https://github.com/kaduvelasco/lumina-stack/actions)
 
 O **LuminaStack** automatiza a criação de um ecossistema completo para desenvolvimento PHP local. Através de scripts inteligentes, você configura **Nginx**, **múltiplas versões de PHP-FPM** e **MariaDB** em minutos, mantendo seu sistema operacional limpo e performático.
 
