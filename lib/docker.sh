@@ -16,7 +16,8 @@ validate_php_versions() {
     local versions="$1"
     local supported_versions="7.4 8.0 8.1 8.2 8.3 8.4"
     for v in $versions; do
-        if [[ ! " $supported_versions " =~ " $v " ]]; then
+        local pattern=" $v "
+        if [[ ! " $supported_versions " =~ $pattern ]]; then
             echo -e "${VERMELHO}❌ Versão PHP '$v' não é suportada.${RESET}"
             echo -e "   Disponíveis: ${AMARELO}$supported_versions${RESET}"
             return 1
