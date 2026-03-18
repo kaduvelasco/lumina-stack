@@ -1,0 +1,87 @@
+name: Lint & Smoke Test
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar ShellCheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Executar ShellCheck nos scripts
+        run: |
+          shellcheck install.sh
+          shellcheck clean-docker.sh
+          shellcheck lib/colors.sh
+          shellcheck lib/menu.sh
+          shellcheck lib/system.sh
+          shellcheck lib/workspace.sh
+          shellcheck lib/docker.sh
+          shellcheck lib/scripts-installer.sh
+          shellcheck scripts/lumina.sh
+          shellcheck scripts/lumina-db.sh
+
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: shellcheck
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Verificar permissão de execução
+        run: |
+          test -x install.sh       || chmod +x install.sh
+          test -x clean-docker.sh  || chmod +x clean-docker.sh
+
+      - name: Verificar sintaxe dos scripts (bash -n)
+        run: |
+          bash -n install.sh
+          bash -n clean-docker.sh
+          bash -n lib/colors.sh
+          bash -n lib/menu.sh
+          bash -n lib/system.sh
+          bash -n lib/workspace.sh
+          bash -n lib/docker.sh
+          bash -n lib/scripts-installer.sh
+          bash -n scripts/lumina.sh
+          bash -n scripts/lumina-db.sh
+
+      - name: Verificar estrutura de arquivos obrigatórios
+        run: |
+          for FILE in \
+            install.sh \
+            clean-docker.sh \
+            lib/colors.sh \
+            lib/menu.sh \
+            lib/system.sh \
+            lib/workspace.sh \
+            lib/docker.sh \
+            lib/scripts-installer.sh \
+            scripts/lumina.sh \
+            scripts/lumina-db.sh \
+            templates/docker-compose.tpl \
+            templates/nginx.conf.tpl \
+            templates/php.Dockerfile.tpl \
+            templates/php-base.Dockerfile.tpl \
+            templates/php.ini.tpl \
+            templates/index.php.tpl \
+            templates/info.php.tpl; do
+            if [ ! -f "$FILE" ]; then
+              echo "❌ Arquivo obrigatório não encontrado: $FILE"
+              exit 1
+            else
+              echo "✅ $FILE"
+            fi
+          done

@@ -11,7 +11,8 @@ services:
       - ../logs/nginx:/var/log/nginx
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     networks:
       - docker-php-network
 
@@ -22,9 +23,9 @@ services:
     image: mariadb:11
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
-      MYSQL_USER: ${DB_USER:-admin}
-      MYSQL_PASSWORD: ${DB_PASS:-changeme}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_DATABASE: dev_db
     ports:
       - "${MARIADB_PORT:-3306}:3306"
