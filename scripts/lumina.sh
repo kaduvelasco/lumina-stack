@@ -45,7 +45,7 @@ detect_workspace() {
 mostrar_ultimo_backup() {
     local BACKUP_DIR="$HOME/workspace/backups"
     local ULTIMO
-    ULTIMO=$(ls -t "$BACKUP_DIR"/*.sql 2>/dev/null | head -1)
+    ULTIMO=$(find "$BACKUP_DIR" -maxdepth 1 -name "*.sql" -printf "%T@ %p\n" 2>/dev/null | sort -rn | head -1 | cut -d" " -f2-)
 
     if [ -n "$ULTIMO" ]; then
         local DATA
@@ -165,13 +165,12 @@ logs_menu() {
 
     while true; do
         echo -e "\n${AZUL}===== 📜 Visualizador de Logs =====${RESET}"
-        local PHP_LOGS INDEX=1
+        local INDEX=1
         declare -A MAP
-        PHP_LOGS=$(ls "$LOG_DIR" 2>/dev/null | grep php)
-
-        for p in $PHP_LOGS; do
+        for p in "$LOG_DIR"/php*/; do
+            p=$(basename "$p")
             local VERSION
-            VERSION=$(echo "$p" | sed 's/php//')
+            VERSION="${p#php}"
             echo -e "   ${VERDE}$INDEX.${RESET} PHP $VERSION"
             MAP[$INDEX]="$p"
             ((INDEX++))
