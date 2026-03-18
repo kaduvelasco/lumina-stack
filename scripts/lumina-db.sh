@@ -26,7 +26,7 @@ CONF_MOODLE_DIR="$DOCKER_BASE_DIR/mariadb/conf.d"
 BACKUP_DIR="$HOME/workspace/backups"
 BACKUPS_MANTER=3
 
-trap "echo -e '\n${VERMELHO}❌ Operação interrompida pelo usuário.${RESET}'; exit 1" SIGINT
+trap 'printf "\n❌ Operação interrompida pelo usuário.\n"; exit 1' SIGINT
 
 # ==============================================================================
 # FUNÇÕES AUXILIARES
@@ -54,12 +54,12 @@ executar_mysql() {
 
 limpar_backups_antigos() {
     local TOTAL
-    TOTAL=$(ls -1 "$BACKUP_DIR"/*.sql 2>/dev/null | wc -l)
+    TOTAL=$(find "$BACKUP_DIR" -maxdepth 1 -name "*.sql" 2>/dev/null | wc -l)
 
     if [ "$TOTAL" -gt "$BACKUPS_MANTER" ]; then
         local REMOVER=$(( TOTAL - BACKUPS_MANTER ))
         echo -e "\n${AMARELO}🧹 Mantendo os $BACKUPS_MANTER backups mais recentes...${RESET}"
-        ls -1t "$BACKUP_DIR"/*.sql | tail -n "$REMOVER" | while read -r ARQUIVO; do
+        find "$BACKUP_DIR" -maxdepth 1 -name "*.sql" -printf "%T@ %p\n" 2>/dev/null | sort -rn | tail -n "$REMOVER" | cut -d" " -f2- | while read -r ARQUIVO; do
             rm -f "$ARQUIVO"
             echo -e "   Removido: $(basename "$ARQUIVO")"
         done
@@ -87,10 +87,8 @@ executar_backup() {
 
     ler_credenciais
 
-    docker exec -e MYSQL_PWD="$DB_PASS" "$CONTAINER_NAME" \
-        mariadb-dump -u "$DB_USER" --all-databases > "$FULL_PATH"
-
-    if [ $? -eq 0 ]; then
+    if docker exec -e MYSQL_PWD="$DB_PASS" "$CONTAINER_NAME" \
+        mariadb-dump -u "$DB_USER" --all-databases > "$FULL_PATH"; then
         echo -e "\n${VERDE}✅ Backup concluído com sucesso!${RESET}"
         echo -e "   📄 Arquivo: ${AMARELO}$FILE_NAME${RESET}"
         limpar_backups_antigos
@@ -139,7 +137,7 @@ executar_restore() {
     echo -e "   📁 Buscando backups em: ${AMARELO}$BACKUP_DIR${RESET}\n"
 
     # Lista os arquivos SQL disponíveis com seleção numerada
-    mapfile -t ARQUIVOS < <(ls -1t "$BACKUP_DIR"/*.sql 2>/dev/null)
+    mapfile -t ARQUIVOS < <(find "$BACKUP_DIR" -maxdepth 1 -name "*.sql" -printf "%T@ %p\n" 2>/dev/null | sort -rn | cut -d" " -f2-)
 
     if [ ${#ARQUIVOS[@]} -eq 0 ]; then
         echo -e "${VERMELHO}❌ Nenhum arquivo SQL encontrado em $BACKUP_DIR${RESET}"
@@ -167,9 +165,7 @@ executar_restore() {
     ler_credenciais
     echo -e "\n${AMARELO}⏳ Restaurando... Isso pode levar alguns minutos.${RESET}"
 
-    executar_mysql < "$FILE_FULL"
-
-    if [ $? -eq 0 ]; then
+    if executar_mysql < "$FILE_FULL"; then
         echo -e "${VERDE}✅ Restore concluído com sucesso!${RESET}"
     else
         echo -e "${VERMELHO}❌ Erro durante o restore.${RESET}"
