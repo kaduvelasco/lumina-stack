@@ -20,16 +20,16 @@ jobs:
 
       - name: Executar ShellCheck nos scripts
         run: |
-          shellcheck install.sh
-          shellcheck clean-docker.sh
-          shellcheck lib/colors.sh
-          shellcheck lib/menu.sh
-          shellcheck lib/system.sh
-          shellcheck lib/workspace.sh
-          shellcheck lib/docker.sh
-          shellcheck lib/scripts-installer.sh
-          shellcheck scripts/lumina.sh
-          shellcheck scripts/lumina-db.sh
+          shellcheck -x install.sh
+          shellcheck -x clean-docker.sh
+          shellcheck -x lib/colors.sh
+          shellcheck -x lib/menu.sh
+          shellcheck -x lib/system.sh
+          shellcheck -x lib/workspace.sh
+          shellcheck -x lib/docker.sh
+          shellcheck -x lib/scripts-installer.sh
+          shellcheck -x scripts/lumina.sh
+          shellcheck -x scripts/lumina-db.sh
 
   smoke-test:
     name: Smoke Test

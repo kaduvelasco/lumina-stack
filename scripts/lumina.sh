@@ -29,7 +29,7 @@ WORKSPACE="$WORKSPACE_DEFAULT"
 detect_workspace() {
     if [ ! -d "$WORKSPACE" ]; then
         echo -e "\n${AMARELO}⚠️  Workspace Lumina não encontrado em: $WORKSPACE_DEFAULT${RESET}"
-        read -p "   Informe o caminho completo do diretório docker: " CUSTOM
+        read -r -p "   Informe o caminho completo do diretório docker: " CUSTOM
         # Expansão segura de ~ sem uso de eval
         CUSTOM="${CUSTOM/#\~/$HOME}"
         if [ -d "$CUSTOM" ]; then
@@ -182,7 +182,7 @@ logs_menu() {
         echo -e "   ${VERMELHO}0.${RESET} Voltar"
         echo ""
 
-        read -p "Escolha o serviço: " OPTION
+        read -r -p "Escolha o serviço: " OPTION
         [ "$OPTION" = "0" ] || [ -z "$OPTION" ] && break
 
         local DIR="${MAP[$OPTION]}"
@@ -218,7 +218,7 @@ show_menu() {
 
 while true; do
     show_menu
-    read -p "Escolha uma opção: " OPTION
+    read -r -p "Escolha uma opção: " OPTION
 
     case $OPTION in
         1) start_environment ;;

@@ -34,7 +34,7 @@ echo -e "   ✅ ~/workspace/www/data    (moodledata)"
 echo -e "   ✅ ~/workspace/backups/    (dumps SQL)"
 echo -e "\n${AMARELO}   Após a limpeza, execute ./install.sh e siga as opções 3 → 4 → 5 → 6.${RESET}\n"
 
-read -p "Tem certeza que deseja continuar? (s/N): " CONFIRM
+read -r -p "Tem certeza que deseja continuar? (s/N): " CONFIRM
 if [[ ! "$CONFIRM" =~ ^[sS]$ ]]; then
     echo -e "\n${VERDE}Operação cancelada.${RESET}\n"
     exit 0

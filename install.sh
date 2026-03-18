@@ -15,11 +15,17 @@
 BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Carrega as bibliotecas
+# shellcheck source=lib/colors.sh
 source "$BASE_DIR/lib/colors.sh"
+# shellcheck source=lib/menu.sh
 source "$BASE_DIR/lib/menu.sh"
+# shellcheck source=lib/system.sh
 source "$BASE_DIR/lib/system.sh"
+# shellcheck source=lib/workspace.sh
 source "$BASE_DIR/lib/workspace.sh"
+# shellcheck source=lib/docker.sh
 source "$BASE_DIR/lib/docker.sh"
+# shellcheck source=lib/scripts-installer.sh
 source "$BASE_DIR/lib/scripts-installer.sh"
 
 # Exibe mensagem de conclusão e aguarda o usuário antes de voltar ao menu
@@ -27,7 +33,7 @@ concluir_acao() {
     local LABEL="$1"
     echo -e "\n${VERDE}✅ $LABEL concluída com sucesso!${RESET}"
     echo -e "${AZUL}──────────────────────────────────${RESET}"
-    read -p "   Pressione Enter para voltar ao menu..."
+    read -r -p "   Pressione Enter para voltar ao menu..."
 }
 
 # Garante que o terminal comece limpo
@@ -37,7 +43,7 @@ while true
 do
     show_menu
 
-    read -p "Selecione uma opção: " opt
+    read -r -p "Selecione uma opção: " opt
 
     case $opt in
         1)

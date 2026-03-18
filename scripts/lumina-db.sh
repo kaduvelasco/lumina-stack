@@ -41,8 +41,8 @@ verificar_docker() {
 }
 
 ler_credenciais() {
-    read -p "   👤 Usuário MariaDB: " DB_USER
-    read -s -p "   🔑 Senha MariaDB: " DB_PASS
+    read -r -p "   👤 Usuário MariaDB: " DB_USER
+    read -r -s -p "   🔑 Senha MariaDB: " DB_PASS
     echo ""
 }
 
@@ -100,7 +100,7 @@ executar_backup() {
     fi
 
     echo ""
-    read -p "Pressione Enter para continuar..."
+    read -r -p "Pressione Enter para continuar..."
 }
 
 remover_bancos_de_dados() {
@@ -119,7 +119,7 @@ remover_bancos_de_dados() {
         echo -e "${AMARELO}ℹ️  Nenhum banco de dados personalizado encontrado.${RESET}"
     else
         for db in $DBS; do
-            read -p "   Remover o banco '${db}'? (s/N): " resp
+            read -r -p "   Remover o banco '${db}'? (s/N): " resp
             if [[ "$resp" =~ ^[sS]$ ]]; then
                 executar_mysql -e "DROP DATABASE \`$db\`;"
                 echo -e "   ${VERDE}✅ Banco '$db' removido.${RESET}"
@@ -128,7 +128,7 @@ remover_bancos_de_dados() {
     fi
 
     echo ""
-    read -p "Pressione Enter para continuar..."
+    read -r -p "Pressione Enter para continuar..."
 }
 
 executar_restore() {
@@ -143,7 +143,7 @@ executar_restore() {
 
     if [ ${#ARQUIVOS[@]} -eq 0 ]; then
         echo -e "${VERMELHO}❌ Nenhum arquivo SQL encontrado em $BACKUP_DIR${RESET}"
-        read -p "Pressione Enter para continuar..."
+        read -r -p "Pressione Enter para continuar..."
         return
     fi
 
@@ -153,11 +153,11 @@ executar_restore() {
     echo ""
 
     local NUM
-    read -p "Selecione o arquivo [1-${#ARQUIVOS[@]}]: " NUM
+    read -r -p "Selecione o arquivo [1-${#ARQUIVOS[@]}]: " NUM
 
     if ! [[ "$NUM" =~ ^[0-9]+$ ]] || [ "$NUM" -lt 1 ] || [ "$NUM" -gt "${#ARQUIVOS[@]}" ]; then
         echo -e "${VERMELHO}❌ Opção inválida.${RESET}"
-        read -p "Pressione Enter para continuar..."
+        read -r -p "Pressione Enter para continuar..."
         return
     fi
 
@@ -176,7 +176,7 @@ executar_restore() {
     fi
 
     echo ""
-    read -p "Pressione Enter para continuar..."
+    read -r -p "Pressione Enter para continuar..."
 }
 
 verificar_tabelas() {
@@ -192,7 +192,7 @@ verificar_tabelas() {
         mariadb-check -u "$DB_USER" --all-databases --optimize
 
     echo ""
-    read -p "Pressione Enter para continuar..."
+    read -r -p "Pressione Enter para continuar..."
 }
 
 otimizar_mariadb_moodle() {
@@ -208,10 +208,10 @@ otimizar_mariadb_moodle() {
         echo -e "   ${VERDE}✅ RAM detectada automaticamente: ${AMARELO}${TOTAL_RAM_MB}MB (~${TOTAL_RAM_GB}GB)${RESET}\n"
     else
         echo -e "   ${AMARELO}⚠️  Não foi possível detectar a RAM automaticamente.${RESET}"
-        read -p "   Informe a quantidade de RAM em GB (ex: 12): " TOTAL_RAM_GB
+        read -r -p "   Informe a quantidade de RAM em GB (ex: 12): " TOTAL_RAM_GB
         while ! [[ "$TOTAL_RAM_GB" =~ ^[0-9]+$ ]] || [ "$TOTAL_RAM_GB" -lt 1 ]; do
             echo -e "   ${VERMELHO}❌ Valor inválido. Digite apenas números inteiros.${RESET}"
-            read -p "   Informe a quantidade de RAM em GB: " TOTAL_RAM_GB
+            read -r -p "   Informe a quantidade de RAM em GB: " TOTAL_RAM_GB
         done
         TOTAL_RAM_MB=$(( TOTAL_RAM_GB * 1024 ))
     fi
@@ -221,7 +221,7 @@ otimizar_mariadb_moodle() {
     echo -e "   ${VERDE}2.${RESET} 1/3 da RAM — $(( TOTAL_RAM_MB / 3 ))MB  (Equilibrado - Recomendado)"
     echo -e "   ${VERDE}3.${RESET} 1/4 da RAM — $(( TOTAL_RAM_MB / 4 ))MB  (Econômico)"
     echo ""
-    read -p "   Opção [1-3]: " escolha_ram
+    read -r -p "   Opção [1-3]: " escolha_ram
 
     local BUFFER_POOL_MB
     case "$escolha_ram" in
@@ -255,7 +255,7 @@ EOF
 
     echo -e "${VERDE}✅ Configurações aplicadas com sucesso.${RESET}"
     echo ""
-    read -p "Pressione Enter para continuar..."
+    read -r -p "Pressione Enter para continuar..."
 }
 
 # ==============================================================================
@@ -279,7 +279,7 @@ exibir_menu() {
 
 while true; do
     exibir_menu
-    read -p "Opção: " escolha
+    read -r -p "Opção: " escolha
     case "$escolha" in
         1) executar_backup ;;
         2) remover_bancos_de_dados ;;

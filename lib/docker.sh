@@ -63,17 +63,17 @@ generate_docker_stack() {
 
     # --- Versões do PHP ---
     while true; do
-        read -p "Versões do PHP (ex: 7.4 8.1 8.2): " PHP_VERSIONS
+        read -r -p "Versões do PHP (ex: 7.4 8.1 8.2): " PHP_VERSIONS
         [[ -n "$PHP_VERSIONS" ]] && validate_php_versions "$PHP_VERSIONS" && break
         [[ -z "$PHP_VERSIONS" ]] && echo -e "${VERMELHO}❌ Informe ao menos uma versão.${RESET}"
     done
 
     # --- Credenciais do banco ---
     while true; do
-        read -p "Usuário do banco [admin]: " DB_USER
+        read -r -p "Usuário do banco [admin]: " DB_USER
         DB_USER=${DB_USER:-admin}
 
-        read -s -p "Senha do banco (Enter para gerar automaticamente): " DB_PASS
+        read -r -s -p "Senha do banco (Enter para gerar automaticamente): " DB_PASS
         echo ""
 
         if [[ -z "$DB_PASS" ]]; then
