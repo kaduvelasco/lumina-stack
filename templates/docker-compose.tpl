@@ -36,7 +36,8 @@ services:
     networks:
       - docker-php-network
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "--silent"]
+      start_period: 30s
       interval: 10s
       timeout: 5s
       retries: 5

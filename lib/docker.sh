@@ -93,7 +93,10 @@ generate_docker_stack() {
 
     # --- Script de permissões MariaDB ---
 cat > "$DOCKER_DIR/mariadb/init/01-permissions.sql" << EOF
-GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'%' IDENTIFIED BY '$DB_PASS' WITH GRANT OPTION;
+-- Atualiza o host do usuário criado pelas variáveis de ambiente (localhost → %)
+-- Isso permite conexões externas ao container (ex: DBeaver, phpMyAdmin)
+RENAME USER '$DB_USER'@'localhost' TO '$DB_USER'@'%';
+GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 EOF
 
