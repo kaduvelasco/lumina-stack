@@ -23,6 +23,7 @@ jobs:
           shellcheck -x install.sh
           shellcheck -x clean-docker.sh
           shellcheck -x lib/colors.sh
+          shellcheck -x lib/versions.sh
           shellcheck -x lib/menu.sh
           shellcheck -x lib/system.sh
           shellcheck -x lib/workspace.sh
@@ -64,6 +65,7 @@ jobs:
             install.sh \
             clean-docker.sh \
             lib/colors.sh \
+            lib/versions.sh \
             lib/menu.sh \
             lib/system.sh \
             lib/workspace.sh \
@@ -74,7 +76,6 @@ jobs:
             templates/docker-compose.tpl \
             templates/nginx.conf.tpl \
             templates/php.Dockerfile.tpl \
-            templates/php-base.Dockerfile.tpl \
             templates/php.ini.tpl \
             templates/index.php.tpl \
             templates/info.php.tpl; do

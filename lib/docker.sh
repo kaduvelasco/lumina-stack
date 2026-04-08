@@ -14,7 +14,7 @@
 
 validate_php_versions() {
     local versions="$1"
-    local supported_versions="7.4 8.0 8.1 8.2 8.3 8.4"
+    local supported_versions="${SUPPORTED_PHP_VERSIONS:-"7.4 8.0 8.1 8.2 8.3 8.4"}"
     for v in $versions; do
         local pattern=" $v "
         if [[ ! " $supported_versions " =~ $pattern ]]; then
@@ -61,11 +61,19 @@ generate_docker_stack() {
     echo -e "\n${AZUL}🛠️  Gerando Stack Docker Lumina...${RESET}"
 
     # Cria pastas necessárias
-    mkdir -p "$DOCKER_DIR"/{nginx,php,php-config,php-base,mariadb/init,mariadb/conf.d}
+    mkdir -p "$DOCKER_DIR"/{nginx,php,php-config,mariadb/init,mariadb/conf.d}
+
+    # --- Valida templates antes de tudo ---
+    if [[ ! -f "$TEMPLATE_DIR/docker-compose.tpl" ]]; then
+        echo -e "${VERMELHO}❌ Template não encontrado: $TEMPLATE_DIR/docker-compose.tpl${RESET}"
+        return 1
+    fi
 
     # --- Versões do PHP ---
     while true; do
         read -r -p "Versões do PHP (ex: 7.4 8.1 8.2): " PHP_VERSIONS
+        # Remove espaços extras nas bordas e normaliza separadores internos
+        PHP_VERSIONS=$(echo "$PHP_VERSIONS" | xargs)
         [[ -n "$PHP_VERSIONS" ]] && validate_php_versions "$PHP_VERSIONS" && break
         [[ -z "$PHP_VERSIONS" ]] && echo -e "${VERMELHO}❌ Informe ao menos uma versão.${RESET}"
     done
@@ -92,22 +100,29 @@ generate_docker_stack() {
     echo -e "   ${AMARELO}🔐 Senha root gerada: $DB_ROOT_PASSWORD${RESET}"
 
     # --- Script de permissões MariaDB ---
+    # Usa crases para citar o identificador (correto) em vez de aspas simples
 cat > "$DOCKER_DIR/mariadb/init/01-permissions.sql" << EOF
 -- Atualiza o host do usuário criado pelas variáveis de ambiente (localhost → %)
 -- Isso permite conexões externas ao container (ex: DBeaver, phpMyAdmin)
-RENAME USER '$DB_USER'@'localhost' TO '$DB_USER'@'%';
-GRANT ALL PRIVILEGES ON *.* TO '$DB_USER'@'%' WITH GRANT OPTION;
+RENAME USER \`$DB_USER\`@'localhost' TO \`$DB_USER\`@'%';
+GRANT ALL PRIVILEGES ON *.* TO \`$DB_USER\`@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 EOF
 
-    # --- Gera os serviços PHP para o docker-compose ---
+    # --- Gera os serviços PHP e o bloco depends_on do Nginx ---
     local PHP_SERVICES=""
+    local NGINX_DEPENDS_ON=""
     local FIRST_VERSION=""
 
     for v in $PHP_VERSIONS; do
         local NAME="php${v//./}"
         [[ -z "$FIRST_VERSION" ]] && FIRST_VERSION="$NAME"
         mkdir -p "$WORKSPACE/logs/$NAME"
+
+        # Bloco depends_on do Nginx para este serviço PHP
+        NGINX_DEPENDS_ON="${NGINX_DEPENDS_ON}      ${NAME}:
+        condition: service_healthy
+"
 
         PHP_SERVICES="$PHP_SERVICES
   $NAME:
@@ -125,28 +140,49 @@ EOF
       - ./php-config/php.ini:/usr/local/etc/php/php.ini
     environment:
       - XDEBUG_MODE=off
+    extra_hosts:
+      - \"host.docker.internal:host-gateway\"
     healthcheck:
-      test: [\"CMD\", \"php\", \"-v\"]
-      interval: 30s
-      timeout: 10s
+      test: [\"CMD-SHELL\", \"php-fpm -t > /dev/null 2>&1\"]
+      start_period: 10s
+      interval: 15s
+      timeout: 5s
       retries: 3
+    logging:
+      driver: \"json-file\"
+      options:
+        max-size: \"10m\"
+        max-file: \"3\"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
     networks:
       - docker-php-network
 "
     done
 
-    # --- Gera o docker-compose.yml substituindo os dois placeholders ---
-    awk -v php_services="$PHP_SERVICES" -v default_php="$FIRST_VERSION" '{
-        if ($0 ~ /{{PHP_SERVICES}}/)  { print php_services }
-        else if ($0 ~ /{{DEFAULT_PHP}}/) { gsub(/{{DEFAULT_PHP}}/, default_php); print }
+    # --- Gera o docker-compose.yml substituindo os três placeholders ---
+    awk -v php_services="$PHP_SERVICES" \
+        -v default_php="$FIRST_VERSION" \
+        -v nginx_deps="$NGINX_DEPENDS_ON" '{
+        if ($0 ~ /{{PHP_SERVICES}}/)       { print php_services }
+        else if ($0 ~ /{{DEFAULT_PHP}}/)   { gsub(/{{DEFAULT_PHP}}/, default_php); print }
+        else if ($0 ~ /{{NGINX_DEPENDS_ON}}/) { print nginx_deps }
         else { print }
     }' "$TEMPLATE_DIR/docker-compose.tpl" > "$DOCKER_DIR/docker-compose.yml"
 
+    if [[ ! -s "$DOCKER_DIR/docker-compose.yml" ]]; then
+        echo -e "${VERMELHO}❌ Falha ao gerar docker-compose.yml (arquivo vazio).${RESET}"
+        rm -f "$DOCKER_DIR/docker-compose.yml"
+        return 1
+    fi
+
     # --- Copia os templates restantes ---
-    cp "$TEMPLATE_DIR/nginx.conf.tpl"          "$DOCKER_DIR/nginx/default.conf"
-    cp "$TEMPLATE_DIR/php.Dockerfile.tpl"      "$DOCKER_DIR/php/Dockerfile"
-    cp "$TEMPLATE_DIR/php.ini.tpl"             "$DOCKER_DIR/php-config/php.ini"
-    cp "$TEMPLATE_DIR/php-base.Dockerfile.tpl" "$DOCKER_DIR/php-base/Dockerfile"
+    cp "$TEMPLATE_DIR/nginx.conf.tpl"     "$DOCKER_DIR/nginx/default.conf"
+    cp "$TEMPLATE_DIR/php.Dockerfile.tpl" "$DOCKER_DIR/php/Dockerfile"
+    cp "$TEMPLATE_DIR/php.ini.tpl"        "$DOCKER_DIR/php-config/php.ini"
 
     # Substitui os placeholders no nginx.conf gerado:
     # {{DEFAULT_PHP}}     → ex: php81  (nome completo do container)
@@ -158,13 +194,18 @@ EOF
         "$DOCKER_DIR/nginx/default.conf"
 
     # --- Gera o .env com permissão restrita ---
-    cat > "$DOCKER_DIR/.env" << EOF
+    # Usa arquivo temporário + mv atômico para evitar janela de exposição entre
+    # a criação do arquivo (com permissão padrão) e o chmod 600
+    local ENV_TMP
+    ENV_TMP=$(mktemp "$DOCKER_DIR/.env.XXXXXX")
+    chmod 600 "$ENV_TMP"
+    cat > "$ENV_TMP" << EOF
 DB_USER=$DB_USER
 DB_PASS=$DB_PASS
 DB_ROOT_PASSWORD=$DB_ROOT_PASSWORD
 PHP_VERSIONS=$PHP_VERSIONS
 EOF
-    chmod 600 "$DOCKER_DIR/.env"
+    mv "$ENV_TMP" "$DOCKER_DIR/.env"
 
     # --- Atualiza o /etc/hosts ---
     export PHP_VERSIONS
@@ -176,7 +217,4 @@ EOF
     echo -e "   ${AZUL}Usuário DB    :${RESET} $DB_USER"
     echo -e "   ${AZUL}Credenciais   :${RESET} $DOCKER_DIR/.env ${AMARELO}(chmod 600)${RESET}"
 
-    echo -e "\n${AMARELO}🔨 Construindo imagem base PHP...${RESET}"
-    docker build -t php-base "$DOCKER_DIR/php-base"
-    echo -e "${VERDE}✅ Imagem base construída com sucesso.${RESET}"
 }

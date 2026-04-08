@@ -17,6 +17,8 @@ BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Carrega as bibliotecas
 # shellcheck source=lib/colors.sh
 source "$BASE_DIR/lib/colors.sh"
+# shellcheck source=lib/versions.sh
+source "$BASE_DIR/lib/versions.sh"
 # shellcheck source=lib/menu.sh
 source "$BASE_DIR/lib/menu.sh"
 # shellcheck source=lib/system.sh
@@ -75,7 +77,7 @@ do
             exit 0
             ;;
         *)
-            echo -e "\n${VERMELHO}❌ Opção inválida! Tente novamente.${RESET}"
+            echo -e "\n${VERMELHO}❌ Opção inválida! Digite um número de 0 a 6.${RESET}"
             sleep 1
             ;;
     esac

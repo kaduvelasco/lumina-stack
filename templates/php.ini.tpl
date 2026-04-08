@@ -20,6 +20,7 @@ opcache.fast_shutdown = 1
 opcache.save_comments = 1
 opcache.enable_cli = 1
 
+; Ambiente de desenvolvimento local — não use em produção
 display_errors = On
 display_startup_errors = On
 error_reporting = E_ALL
@@ -37,6 +38,7 @@ session.use_strict_mode = 1
 session.gc_maxlifetime = 1440
 
 xdebug.mode = off
+; Funciona com extra_hosts "host.docker.internal:host-gateway" no docker-compose (Linux e Docker Desktop)
 xdebug.client_host = host.docker.internal
 xdebug.client_port = 9003
 xdebug.start_with_request = yes

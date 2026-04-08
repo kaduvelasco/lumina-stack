@@ -18,12 +18,24 @@ create_workspace() {
 
     echo -e "\n${AZUL}📂 Criando estrutura de workspace em $WORKSPACE...${RESET}"
 
+    # Avisa se workspace já existe para que o usuário possa confirmar
+    if [[ -d "$WORKSPACE" ]]; then
+        echo -e "${AMARELO}⚠️  O workspace já existe em $WORKSPACE${RESET}"
+        echo -e "   Continuar irá reinstalar os arquivos de interface (index.php, info.php)"
+        echo -e "   e reajustar as permissões. Nenhum dado será apagado."
+        read -r -p "   Continuar? (s/N): " CONFIRMAR
+        if [[ ! "$CONFIRMAR" =~ ^[sS]$ ]]; then
+            echo -e "${AMARELO}Operação cancelada.${RESET}"
+            return 1
+        fi
+    fi
+
     # 1. Cria diretórios principais
     mkdir -p "$WORKSPACE"/{www/html,www/data,databases/mariadb,logs/nginx,docker,docker/mariadb/conf.d,backups}
 
     # 2. Cria pastas de logs dinâmicas para o PHP
     # Se PHP_VERSIONS estiver vazio (opção 3 executada antes da 4), cria as versões padrão
-    local VERSIONS=${PHP_VERSIONS:-"7.4 8.1 8.2 8.3 8.4"}
+    local VERSIONS=${PHP_VERSIONS:-${SUPPORTED_PHP_VERSIONS:-"7.4 8.1 8.2 8.3 8.4"}}
     for v in $VERSIONS; do
         local V_CLEAN="php${v/./}"
         mkdir -p "$WORKSPACE/logs/$V_CLEAN"

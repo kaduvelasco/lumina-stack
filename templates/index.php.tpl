@@ -10,14 +10,15 @@ $phpVersions = [];
 
 if (file_exists($envFile)) {
     $envContent = file_get_contents($envFile);
-    if (preg_match("/PHP_VERSIONS=(.*)/", $envContent, $matches)) {
-        $phpVersions = explode(" ", trim($matches[1]));
+    // Usa \r?\n para capturar apenas a linha PHP_VERSIONS, sem vazar para linhas seguintes
+    if (preg_match('/^PHP_VERSIONS=(.+)/m', $envContent, $matches)) {
+        $phpVersions = preg_split('/\s+/', trim($matches[1]), -1, PREG_SPLIT_NO_EMPTY);
     }
 }
 
-// Fallback caso não consiga ler o .env
+// Fallback caso não consiga ler o .env (lista completa de versões suportadas)
 if (empty($phpVersions)) {
-    $phpVersions = ["7.4", "8.1", "8.2", "8.3"];
+    $phpVersions = ["7.4", "8.0", "8.1", "8.2", "8.3", "8.4"];
 }
 ?>
 <!DOCTYPE html>

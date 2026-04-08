@@ -40,6 +40,13 @@ if [[ ! "$CONFIRM" =~ ^[sS]$ ]]; then
     exit 0
 fi
 
+echo -e "${VERMELHO}⚠️  Confirmação final: digite ${AMARELO}SIM${VERMELHO} (em maiúsculo) para prosseguir:${RESET}"
+read -r -p "   > " DOUBLE_CHECK
+if [[ "$DOUBLE_CHECK" != "SIM" ]]; then
+    echo -e "\n${VERDE}Operação cancelada.${RESET}\n"
+    exit 0
+fi
+
 echo -e "\n${AZUL}🧹 Iniciando limpeza do Docker...${RESET}\n"
 
 # ==============================================================================

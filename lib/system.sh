@@ -13,7 +13,7 @@
 detect_distro() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
-        DISTRO=$ID
+        export DISTRO="$ID"
         return 0
     fi
     echo -e "${VERMELHO}❌ Não foi possível detectar a distribuição.${RESET}"
@@ -58,11 +58,42 @@ install_docker() {
                 sudo systemctl enable --now docker
                 ;;
             *)
-                # Script oficial funciona bem em Ubuntu, Debian e Fedora
-                curl -fsSL https://get.docker.com -o get-docker.sh
-                sudo sh get-docker.sh
+                # Oferece escolha entre package manager (mais seguro) ou script oficial
+                echo -e "\n${AZUL}Como deseja instalar o Docker?${RESET}"
+                echo -e "   ${VERDE}1.${RESET} Via package manager ${AMARELO}(recomendado — mais seguro e rastreável)${RESET}"
+                echo -e "   ${VERDE}2.${RESET} Via script oficial ${AMARELO}(get.docker.com — sempre a versão mais recente)${RESET}"
+                read -r -p "   Opção [1]: " DOCKER_INSTALL_METHOD
+                DOCKER_INSTALL_METHOD=${DOCKER_INSTALL_METHOD:-1}
+
+                if [[ "$DOCKER_INSTALL_METHOD" == "1" ]]; then
+                    case "$DISTRO" in
+                        ubuntu|debian|linuxmint|pop)
+                            sudo apt update
+                            sudo apt install -y docker.io docker-compose-v2
+                            ;;
+                        fedora)
+                            sudo dnf install -y docker docker-compose
+                            ;;
+                        *)
+                            echo -e "${AMARELO}⚠️  Distro '$DISTRO' não tem package manager configurado.${RESET}"
+                            echo -e "   Usando script oficial como fallback..."
+                            DOCKER_INSTALL_METHOD="2"
+                            ;;
+                    esac
+                fi
+
+                if [[ "$DOCKER_INSTALL_METHOD" == "2" ]]; then
+                    curl -fsSL https://get.docker.com -o get-docker.sh
+                    if sudo sh get-docker.sh; then
+                        rm -f get-docker.sh
+                    else
+                        echo -e "${VERMELHO}❌ Falha na instalação do Docker.${RESET}"
+                        echo -e "   Script mantido para análise: ${AMARELO}$(pwd)/get-docker.sh${RESET}"
+                        return 1
+                    fi
+                fi
+
                 sudo systemctl enable --now docker
-                rm get-docker.sh
                 ;;
         esac
     fi
@@ -109,9 +140,14 @@ update_hosts() {
 }
 
 check_port_80() {
+    if ! command -v lsof >/dev/null 2>&1; then
+        echo -e "${AMARELO}⚠️  lsof não encontrado. Pulando verificação da porta 80.${RESET}"
+        return 0
+    fi
+
     if sudo lsof -i :80 > /dev/null 2>&1; then
         echo -e "\n${AMARELO}⚠️  Aviso: A porta 80 já está em uso por outro processo:${RESET}"
-        sudo lsof -i :80
+        sudo lsof -i :80 || echo -e "   ${AMARELO}(Não foi possível listar os processos)${RESET}"
         echo -e "${AMARELO}    Solução: sudo systemctl stop apache2  ou  sudo systemctl stop nginx${RESET}"
         return 1
     fi
