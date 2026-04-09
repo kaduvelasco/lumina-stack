@@ -3,7 +3,6 @@
 #
 # Impede que ferramentas de IA (Claude Code, Gemini Code Assist) processem
 # arquivos sensíveis, binários e dados pesados desnecessários.
-# Gerado automaticamente pelo comando 'mygit' em cada repositório.
 # =============================================================================
 
 # -----------------------------------------------------------------------------

@@ -225,6 +225,9 @@ executar_restore() {
 
     echo -e "\n   Arquivo selecionado: ${AMARELO}$(basename "$FILE_FULL")${RESET}\n"
 
+    echo -e "   ${AMARELO}⚠️  O restore requer um usuário com privilégio CREATE DATABASE.${RESET}"
+    echo -e "   ${AMARELO}   Use 'root' ou um superusuário do MariaDB.${RESET}\n"
+
     ler_credenciais || { read -r -p "Pressione Enter para continuar..."; return; }
     echo -e "\n${AMARELO}⏳ Restaurando... Isso pode levar alguns minutos.${RESET}"
 
